@@ -1,13 +1,40 @@
 #include "../Inc/Main_system.h"
 #include "../Inc/dht11.h"
 #include "../Inc/Config.h"
+#include "../Inc/pid.h"
 
 static esp_adc_cal_characteristics_t adc1_chars;
+
+PIDController myPID;
+double temp = 0;               // Temperature (input)
+double PIDOut = 0;             // PID output
+double TempSetpoint = TEMP_TARGET;      // Desired temperature
 
 
 void app_main(void)
 {
     DHT11_init(PIN_NUMBER);
+
+    myPID.Kp = 2.0;  // Proportional gain
+    myPID.Ki = 0.01;  // Integral gain
+    myPID.Kd = 1.0;  // Derivative gain
+
+    myPID.tau = 0.02;  // Low-pass filter time constant (for derivative term)
+    myPID.T = 1.0;     // Sample time in seconds
+
+    // Output limits (e.g., PWM limits from 0 to 100)
+    myPID.limMin = 0.0f;
+    myPID.limMax = 100.0f;
+
+    // Integrator limits (to prevent integrator wind-up)
+    myPID.limMinInt = -10.0f;
+    myPID.limMaxInt = 10.0f;
+
+    // Initialize the PID controller
+    PIDController_Init(&myPID);
+
+
+
 
     esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_11, ADC_WIDTH_BIT_DEFAULT, 0, &adc1_chars);
 
@@ -30,7 +57,7 @@ void app_main(void)
     ledc_timer_config_t ledc_timer = {
         .speed_mode       = LEDC_HIGH_SPEED_MODE,     // High speed mode
         .timer_num        = LEDC_TIMER_0,             // Timer 0
-        .duty_resolution  = LEDC_TIMER_13_BIT,        // Set PWM to 13-bit resolution (0-8191)
+        .duty_resolution  = LEDC_TIMER_7_BIT,        // Set PWM to 7-bit resolution (0-8191)
         .freq_hz          = 5000,                     // Frequency of PWM signal (5kHz)
         .clk_cfg          = LEDC_AUTO_CLK             // Auto select clock source
     };
@@ -48,10 +75,9 @@ void app_main(void)
     ledc_channel_config(&ledc_channel);
 
 
-
-    
     while(1){ 
     printf("Temperature is %d \n", DHT11_read().temperature);
+    temp = DHT11_read().temperature;
     printf("Humidity is %d\n", DHT11_read().humidity);
     printf("Status code is %d\n", DHT11_read().status);
     vTaskDelay(2000 / portTICK_PERIOD_MS);    
@@ -61,6 +87,7 @@ void app_main(void)
     printf("\n");
     vTaskDelay(500/ portTICK_PERIOD_MS);
 
+    #if 0
     // Toggle the Green LED
     printf("Toggling Green LED ON\n");
     gpio_set_level(LED_GPIO_G, 1);  // Turn on
@@ -88,7 +115,7 @@ void app_main(void)
     vTaskDelay(1000 / portTICK_PERIOD_MS);  // Wait for 300ms
 
 
-        for (int duty = 0; duty <= 8191; duty += 256) {
+        for (int duty = 0; duty <= 127; duty += 4) {
             ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0, duty);
             ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0);
             vTaskDelay(30 / portTICK_PERIOD_MS);
@@ -96,13 +123,22 @@ void app_main(void)
 
 
             // Gradually decrease brightness (duty cycle from 8191 to 0)
-        for (int duty = 8191; duty >= 0; duty -= 256) {
+        for (int duty = 127; duty >= 0; duty -= 4) {
             ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0, duty);
             ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0);
             vTaskDelay(30 / portTICK_PERIOD_MS);
         }
+
+#endif
+        PIDOut = PIDController_Update(&myPID, TempSetpoint, temp);
+        printf("Temperature: %.2f, PID Output: %.2f\n", temp, PIDOut);
+
+        ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0, PIDOut);
+        ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0);
+        vTaskDelay(500 / portTICK_PERIOD_MS);
     }
 
 
+    
 
 }

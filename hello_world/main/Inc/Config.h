@@ -9,4 +9,6 @@
 
 #define PWM_GPIO   GPIO_NUM_21
 
+#define TEMP_TARGET 22.5
+
 #endif /* CONFIG_H */

@@ -8,6 +8,7 @@
     "freertos.h": "c",
     "inttypes.h": "c",
     "dht11.h": "c",
-    "*.sh": "c"
+    "*.sh": "c",
+    "pid.h": "c"
   }
 }
