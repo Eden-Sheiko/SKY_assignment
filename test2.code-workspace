@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "../test"
+		},
+		{
+			"name": "test2",
+			"path": "../test2"
+		},
+		{
+			"name": "240901-221338-arduino-blink",
+			"path": "."
+		}
+	],
+	"settings": {}
+}
