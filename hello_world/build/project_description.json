@@ -1,7 +1,7 @@
 {
     "version":            "1.1",
     "project_name":       "hello_world",
-    "project_version":    "1",
+    "project_version":    "05a3a3c-dirty",
     "project_path":       "C:/Users/edens/OneDrive/Documents/PlatformIO/Projects/240901-221338-arduino-blink/hello_world",
     "idf_path":           "C:/Users/edens/esp/v5.3.1/esp-idf",
     "build_dir":          "C:/Users/edens/OneDrive/Documents/PlatformIO/Projects/240901-221338-arduino-blink/hello_world/build",
@@ -1180,7 +1180,7 @@
             "managed_reqs": [],
             "managed_priv_reqs": [],
             "file": "C:/Users/edens/OneDrive/Documents/PlatformIO/Projects/240901-221338-arduino-blink/hello_world/build/esp-idf/main/libmain.a",
-            "sources": [ "C:/Users/edens/OneDrive/Documents/PlatformIO/Projects/240901-221338-arduino-blink/hello_world/main/hello_world_main.c" ],
+            "sources": [ "C:/Users/edens/OneDrive/Documents/PlatformIO/Projects/240901-221338-arduino-blink/hello_world/main/Main_system.c" ],
             "include_dirs": []
         },
         "mbedtls": {
