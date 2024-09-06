@@ -1,2 +1,2 @@
-idf_component_register(SRCS "Main_system.c"
-                    INCLUDE_DIRS "")
+idf_component_register(SRCS "Src/Main_system.c" "Src/dht11.c"
+                    INCLUDE_DIRS "Inc")
