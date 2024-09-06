@@ -14,6 +14,11 @@
 #include "esp_mac.h"
 #include "driver/adc.h"
 #include "esp_adc_cal.h"
+#include "driver/gpio.h"
+#include "driver/ledc.h"
+
+
+
 
 
 
