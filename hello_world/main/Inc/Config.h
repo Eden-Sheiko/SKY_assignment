@@ -12,11 +12,19 @@
 #define PWM_HZ     5000
 
 
+#define MQTT_TOPIC_TEMP      "/home/sensors/temperature"
+#define MQTT_TOPIC_HUMIDITY  "/home/sensors/humidity"
+#define MQTT_TOPIC_LIGHT     "/home/sensors/light"
+
+#define MQTT_TOPIC_LIGHT_COMMAND "/home/commands/light"
+
 
 static const char* const TAG = "MQTT";
 static const char* const TAG2 = "GreenHouse";
-//#define  EXAMPLE_ESP_WIFI_SSID "Sheiko"
-//#define  EXAMPLE_ESP_WIFI_PASS "10203070"
+
+#define  EXAMPLE_ESP_WIFI_SSID "Sheiko"
+#define  EXAMPLE_ESP_WIFI_PASS "10203070"
+#define  EXAMPLE_ESP_MAXIMUM_RETRY  5
 
 #define TURN_ON 1
 #define TURN_OFF 0

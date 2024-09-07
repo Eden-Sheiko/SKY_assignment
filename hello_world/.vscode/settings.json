@@ -12,7 +12,12 @@
     "pid.h": "c",
     "esp_adc_cal.h": "c",
     "sdkconfig.h": "c",
-    "queue.h": "c"
+    "queue.h": "c",
+    "wifi.h": "c",
+    "esp_wifi.h": "c",
+    "mqtt_client.h": "c",
+    "main_system.h": "c",
+    "event_groups.h": "c"
   },
   "idf.adapterTargetName": "esp32"
 }
