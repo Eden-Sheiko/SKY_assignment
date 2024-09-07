@@ -9,6 +9,10 @@
     "inttypes.h": "c",
     "dht11.h": "c",
     "*.sh": "c",
-    "pid.h": "c"
-  }
+    "pid.h": "c",
+    "esp_adc_cal.h": "c",
+    "sdkconfig.h": "c",
+    "queue.h": "c"
+  },
+  "idf.adapterTargetName": "esp32"
 }

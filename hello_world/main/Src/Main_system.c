@@ -3,6 +3,37 @@
 #include "../Inc/Config.h"
 #include "../Inc/pid.h"
 
+#define DEBUG
+
+int update_lighting(double);
+
+static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data) {
+    esp_mqtt_event_handle_t event = event_data;
+    switch (event->event_id) {
+        case MQTT_EVENT_CONNECTED:
+            ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
+            esp_mqtt_client_subscribe(event->client, "/topic/qos0", 0);
+            esp_mqtt_client_publish(event->client, "/topic/qos0", "Hello from ESP32", 0, 1, 0);
+            break;
+        case MQTT_EVENT_DISCONNECTED:
+            ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
+            break;
+        default:
+            break;
+    }
+}
+
+static void mqtt_app_start(void) {
+    esp_mqtt_client_config_t mqtt_cfg = {
+        .broker.address.uri = "mqtt://test.mosquitto.org", // Update broker URI if needed
+    };
+
+    esp_mqtt_client_handle_t client = esp_mqtt_client_init(&mqtt_cfg);
+    esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, mqtt_event_handler, NULL);
+    esp_mqtt_client_start(client);
+}
+
+
 static esp_adc_cal_characteristics_t adc1_chars;
 
 PIDController myPID;
@@ -33,9 +64,6 @@ void app_main(void)
     // Initialize the PID controller
     PIDController_Init(&myPID);
 
-
-
-
     esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_11, ADC_WIDTH_BIT_DEFAULT, 0, &adc1_chars);
 
     adc1_config_width(ADC_WIDTH_BIT_DEFAULT);
@@ -54,7 +82,7 @@ void app_main(void)
     gpio_set_direction(LED_GPIO_R, GPIO_MODE_OUTPUT);
 
     // Configure the PWM timer
-    ledc_timer_config_t ledc_timer = {
+    static ledc_timer_config_t ledc_timer = {
         .speed_mode       = LEDC_HIGH_SPEED_MODE,     // High speed mode
         .timer_num        = LEDC_TIMER_0,             // Timer 0
         .duty_resolution  = LEDC_TIMER_7_BIT,        // Set PWM to 7-bit resolution (0-8191)
@@ -64,7 +92,7 @@ void app_main(void)
     ledc_timer_config(&ledc_timer);
 
     // Configure the PWM channel
-    ledc_channel_config_t ledc_channel = {
+    static ledc_channel_config_t ledc_channel = {
         .gpio_num   = PWM_GPIO,              // The GPIO pin (GPIO21)
         .speed_mode = LEDC_HIGH_SPEED_MODE, // High speed mode
         .channel    = LEDC_CHANNEL_0,       // Channel 0
@@ -75,70 +103,58 @@ void app_main(void)
     ledc_channel_config(&ledc_channel);
 
 
+
+    ESP_ERROR_CHECK(nvs_flash_init());
+    ESP_ERROR_CHECK(esp_netif_init());
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    //ESP_ERROR_CHECK(example_connect());
+
+    mqtt_app_start();
+    
+
+
     while(1){ 
-    printf("Temperature is %d \n", DHT11_read().temperature);
+   
+    ESP_LOGI(TAG2, "temperature is %d", DHT11_read().temperature);
+    ESP_LOGI(TAG2, "Status code is %d\n", DHT11_read().status);
+    ESP_LOGI(TAG2, "Humidity is %d\n", DHT11_read().humidity);
+
     temp = DHT11_read().temperature;
-    printf("Humidity is %d\n", DHT11_read().humidity);
-    printf("Status code is %d\n", DHT11_read().status);
-    vTaskDelay(2000 / portTICK_PERIOD_MS);    
-
-    int adc_value = adc1_get_raw(ADC1_CHANNEL_4);
-    printf("ADC Value: %d", adc_value);
-    printf("\n");
-    vTaskDelay(500/ portTICK_PERIOD_MS);
-
-    #if 0
-    // Toggle the Green LED
-    printf("Toggling Green LED ON\n");
-    gpio_set_level(LED_GPIO_G, 1);  // Turn on
-    vTaskDelay(1000 / portTICK_PERIOD_MS);  // Wait for 300ms
-
-    printf("Toggling Green LED OFF\n");
-    gpio_set_level(LED_GPIO_G, 0);  // Turn off
-    vTaskDelay(1000 / portTICK_PERIOD_MS);  // Wait for 300ms
-
-    printf("Toggling BLUE LED OFF\n");
-    gpio_set_level(LED_GPIO_B, 1);  // Turn on
-    vTaskDelay(1000 / portTICK_PERIOD_MS);  // Wait for 300ms
-
-    printf("Toggling BLUE LED OFF\n");
-    gpio_set_level(LED_GPIO_B, 0);  // Turn off
-    vTaskDelay(1000 / portTICK_PERIOD_MS);  // Wait for 300ms
-
-
-    printf("Toggling RED LED OFF\n");
-    gpio_set_level(LED_GPIO_R, 1);  // Turn on
-    vTaskDelay(1000 / portTICK_PERIOD_MS);  // Wait for 300ms
-
-    printf("Toggling RED LED OFF\n");
-    gpio_set_level(LED_GPIO_R, 0);  // Turn off
-    vTaskDelay(1000 / portTICK_PERIOD_MS);  // Wait for 300ms
-
-
-        for (int duty = 0; duty <= 127; duty += 4) {
-            ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0, duty);
-            ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0);
-            vTaskDelay(30 / portTICK_PERIOD_MS);
-        }
-
-
-            // Gradually decrease brightness (duty cycle from 8191 to 0)
-        for (int duty = 127; duty >= 0; duty -= 4) {
-            ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0, duty);
-            ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0);
-            vTaskDelay(30 / portTICK_PERIOD_MS);
-        }
-
-#endif
-        PIDOut = PIDController_Update(&myPID, TempSetpoint, temp);
-        printf("Temperature: %.2f, PID Output: %.2f\n", temp, PIDOut);
-
-        ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0, PIDOut);
-        ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0);
-        vTaskDelay(500 / portTICK_PERIOD_MS);
+    if (temp < 20){
+        ESP_LOGI(TAG2, "Toggling BLUE LED ON\n");
+        gpio_set_level(LED_GPIO_B, 1);
+        gpio_set_level(LED_GPIO_G, 0);  
+        gpio_set_level(LED_GPIO_R, 0);    
+        vTaskDelay(10 / portTICK_PERIOD_MS);  
+    }else if (temp >= 20 && temp <= 25 ){
+        ESP_LOGI(TAG2, "Toggling Green LED on\n");
+        gpio_set_level(LED_GPIO_G, 1);
+        gpio_set_level(LED_GPIO_B, 0);
+        gpio_set_level(LED_GPIO_R, 0); 
+        vTaskDelay(10 / portTICK_PERIOD_MS);  
+    }else{
+        ESP_LOGI(TAG2, "Toggling RED LED ON\n");
+        gpio_set_level(LED_GPIO_R, 1);
+        gpio_set_level(LED_GPIO_B, 0);  
+        gpio_set_level(LED_GPIO_G, 0);  
+        vTaskDelay(10 / portTICK_PERIOD_MS);  
     }
 
+    vTaskDelay(500 / portTICK_PERIOD_MS);    
 
+    int adc_value = adc1_get_raw(ADC1_CHANNEL_4);
+    ESP_LOGI(TAG2, "ADC Value: %d" ,adc_value);
+    vTaskDelay(500/ portTICK_PERIOD_MS);
+
+
+    PIDOut = PIDController_Update(&myPID, TempSetpoint, temp);
+    ESP_LOGI(TAG2, "Temperature: %.2f, PID Output: %.2f\n", temp, PIDOut);
+
+    ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0, PIDOut);
+    ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0);
+    vTaskDelay(500 / portTICK_PERIOD_MS);
     
 
 }
+
+
