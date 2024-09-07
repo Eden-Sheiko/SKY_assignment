@@ -62,6 +62,19 @@
 #include "lwip/err.h" //light weight ip packets error handling
 #include "lwip/sys.h" //system applications for light weight ip apps
 
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
+#include <stdlib.h>
+#include <inttypes.h>
+#include "esp_system.h"
+#include "nvs_flash.h"
+#include "esp_event.h"
+#include "esp_netif.h"
+
+#include "esp_log.h"
+#include "mqtt_client.h"
+
 
 
 
