@@ -6,6 +6,8 @@
  * declarations for setting up a WiFi station using ESP32. The WiFi 
  * station will connect to a predefined SSID and handle connection 
  * retries.
+ * 
+ * code was taken form esp32 offical github and ajusted 
  */
 
 #ifndef WIFI_H

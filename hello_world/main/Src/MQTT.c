@@ -1,10 +1,27 @@
-#include "../Inc/MQTT.h"
+/**
+ * @file mqtt_app.c
+ * @brief MQTT client setup and event handling.
+ * 
+ * This file contains the implementation of the MQTT client setup, including event 
+ * handling for various MQTT events like connection, subscription, and message handling.
+ * 
+ * code was taken form esp32 offical github and ajusted 
+ */
 
+#include "../Inc/MQTT.h"
 
 static const char *TAG = "MQTT";
 
 esp_mqtt_client_handle_t client;
 
+/**
+ * @brief Logs an error if the error code is nonzero.
+ * 
+ * This function checks the error code, and if it is nonzero, it logs an error message.
+ * 
+ * @param message The message to log.
+ * @param error_code The error code to check.
+ */
 static void log_error_if_nonzero(const char *message, int error_code)
 {
     if (error_code != 0) {
@@ -12,15 +29,16 @@ static void log_error_if_nonzero(const char *message, int error_code)
     }
 }
 
-/*
- * @brief Event handler registered to receive MQTT events
- *
- *  This function is called by the MQTT client event loop.
- *
- * @param handler_args user data registered to the event.
- * @param base Event base for the handler(always MQTT Base in this example).
+/**
+ * @brief MQTT event handler.
+ * 
+ * This function handles MQTT events like connection, subscription, data reception, 
+ * and errors. It is called by the MQTT client event loop.
+ * 
+ * @param handler_args User data registered to the event.
+ * @param base Event base for the handler (always MQTT Base in this example).
  * @param event_id The id for the received event.
- * @param event_data The data for the event, esp_mqtt_event_handle_t.
+ * @param event_data The data for the event (esp_mqtt_event_handle_t).
  */
 static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
 {
@@ -30,49 +48,44 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     int msg_id;
     switch ((esp_mqtt_event_id_t)event_id) {
     case MQTT_EVENT_CONNECTED:
+
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
         msg_id = esp_mqtt_client_subscribe(client, MQTT_TOPIC_LIGHT_COMMAND, 0);
         ESP_LOGI(TAG, "Subscribed to light command, msg_id=%d", msg_id);
 
-        msg_id = esp_mqtt_client_subscribe(client, "/topic/qos0", 0);
-        ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
+        msg_id = esp_mqtt_client_subscribe(client, MQTT_TOPIC_HUMIDITY, 0);
+        ESP_LOGI(TAG, "Subscribed to HUMIDITY command, msg_id=%d", msg_id);
 
-        msg_id = esp_mqtt_client_subscribe(client, "/topic/qos1", 1);
-        ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
+        msg_id = esp_mqtt_client_subscribe(client, MQTT_TOPIC_TEMP, 0);
+        ESP_LOGI(TAG, "Subscribed to TEMP command, msg_id=%d", msg_id);
 
-        msg_id = esp_mqtt_client_unsubscribe(client, "/topic/qos1");
-        ESP_LOGI(TAG, "sent unsubscribe successful, msg_id=%d", msg_id);
         break;
     case MQTT_EVENT_DISCONNECTED:
-        ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
+        ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED, attempting to reconnect...");
+        esp_mqtt_client_reconnect(client);
         break;
 
     case MQTT_EVENT_SUBSCRIBED:
         ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
-        msg_id = esp_mqtt_client_publish(client, "/topic/qos0", "data", 0, 0, 0);
-        ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
         break;
     case MQTT_EVENT_UNSUBSCRIBED:
         ESP_LOGI(TAG, "MQTT_EVENT_UNSUBSCRIBED, msg_id=%d", event->msg_id);
         break;
     case MQTT_EVENT_PUBLISHED:
-        ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
+        /* in main */
         break;
     case MQTT_EVENT_DATA:
-         ESP_LOGI(TAG, "MQTT_EVENT_DATA");
-    printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
-    printf("DATA=%.*s\r\n", event->data_len, event->data);
+        ESP_LOGI(TAG, "MQTT_EVENT_DATA");
+        printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
+        printf("DATA=%.*s\r\n", event->data_len, event->data);
 
-    /* todo
     if (strncmp(event->topic, MQTT_TOPIC_LIGHT_COMMAND, event->topic_len) == 0) {
-        int light_level = atoi(event->data);
+        int light_level = atoi(event->data);  
         ESP_LOGI(TAG, "Received light command: %d", light_level);
-        
-        // Adjust lighting based on the received value
+
         ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0, light_level);
         ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0);
     }
-    */
         break;
     case MQTT_EVENT_ERROR:
         ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
@@ -81,7 +94,6 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
             log_error_if_nonzero("reported from tls stack", event->error_handle->esp_tls_stack_err);
             log_error_if_nonzero("captured as transport's socket errno",  event->error_handle->esp_transport_sock_errno);
             ESP_LOGI(TAG, "Last errno string (%s)", strerror(event->error_handle->esp_transport_sock_errno));
-
         }
         break;
     default:
@@ -90,6 +102,12 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     }
 }
 
+/**
+ * @brief Initializes and starts the MQTT client.
+ * 
+ * This function sets up the MQTT client configuration, connects to the MQTT broker, 
+ * and registers the event handler for MQTT events.
+ */
 void mqtt_app_start(void)
 {
     esp_mqtt_client_config_t mqtt_cfg = {

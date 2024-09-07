@@ -17,7 +17,8 @@
     "esp_wifi.h": "c",
     "mqtt_client.h": "c",
     "main_system.h": "c",
-    "event_groups.h": "c"
+    "event_groups.h": "c",
+    "gpio.h": "c"
   },
   "idf.adapterTargetName": "esp32"
 }

@@ -1,88 +1,50 @@
+/**
+ * @file main_system.h
+ * @brief Main system header file for ESP32 project.
+ * 
+ * This file includes necessary headers for ESP32 system initialization, WiFi setup, 
+ * MQTT client configuration, and FreeRTOS task management.
+ */
+
 #ifndef MAIN_SYSTEM_H
 #define MAIN_SYSTEM_H
 
+#include <stdio.h>              // For basic printf commands
+#include <inttypes.h>           // For fixed-width integer types
+#include <string.h>             // For string handling
+#include <stdlib.h>             // For memory management functions
+#include <stdint.h>             // For standard integer types
+#include "sdkconfig.h"          // SDK configuration
+#include "esp_system.h"         // ESP system functions (esp_init, esp_err_t)
+#include "nvs_flash.h"          // Non-volatile storage functions
+#include "esp_wifi.h"           // WiFi functions (esp_wifi_init)
+#include "esp_event.h"          // Event handling (WiFi and system events)
+#include "esp_netif.h"          // Network interface initialization
+#include "esp_mac.h"            // MAC address management
+#include "esp_log.h"            // Logging functions (ESP_LOG)
+#include "esp_chip_info.h"      // Chip information
+#include "esp_flash.h"          // Flash memory functions
+#include "driver/adc.h"         // ADC driver for reading analog inputs
+#include "esp_adc_cal.h"        // ADC calibration
+#include "driver/gpio.h"        // GPIO control
+#include "driver/ledc.h"        // LED control (LEDC)
+#include "mqtt_client.h"        // MQTT client setup and communication
+#include "freertos/FreeRTOS.h"  // FreeRTOS task management, delays, mutexes, and semaphores
+#include "freertos/task.h"      // Task creation and management
+#include "freertos/semphr.h"    // Semaphore functions
+#include "freertos/queue.h"     // Queue functions for inter-task communication
+#include "lwip/sockets.h"       // Lightweight IP socket functions
+#include "lwip/dns.h"           // DNS handling
+#include "lwip/netdb.h"         // Network database functions
+#include "lwip/err.h"           // Lightweight IP error handling
+#include "lwip/sys.h"           // System functions for lightweight IP applications
 
-
-#include <stdio.h>
-#include <inttypes.h>
-#include "sdkconfig.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "esp_chip_info.h"
-#include "esp_flash.h"
-#include "esp_system.h"
-#include "esp_mac.h"
-#include "driver/adc.h"
-#include "esp_adc_cal.h"
-#include "driver/gpio.h"
-#include "driver/ledc.h"
-#include "mqtt_client.h" //provides important functions to connect with MQTT
-#include "esp_event.h" //managing events of mqtt
-#include "nvs_flash.h" //storing mqtt and wifi configs and settings
-#include "esp_log.h" //log out put, do not use printf everywhere
-
-#include "freertos/semphr.h"
-#include "freertos/queue.h"
-
-#include "lwip/sockets.h"
-#include "lwip/dns.h"
-#include "lwip/netdb.h"
-
-#include <stdio.h>
-#include <stdint.h>
-#include <stddef.h>
-#include <string.h>
-#include "esp_wifi.h"
-#include "esp_system.h"
-#include "nvs_flash.h"
-#include "esp_event.h"
-#include "esp_netif.h"
-
-
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/semphr.h"
-#include "freertos/queue.h"
-
-#include "lwip/sockets.h"
-#include "lwip/dns.h"
-#include "lwip/netdb.h"
-
-#include "esp_log.h"
-#include "mqtt_client.h"
-
-#include <stdio.h> //for basic printf commands
-#include <string.h> //for handling strings
-#include "freertos/FreeRTOS.h" //for delay,mutexs,semphrs rtos operations
-#include "esp_system.h" //esp_init funtions esp_err_t 
-#include "esp_wifi.h" //esp_wifi_init functions and wifi operations
-#include "esp_log.h" //for showing logs
-#include "esp_event.h" //for wifi event
-#include "nvs_flash.h" //non volatile storage
-#include "lwip/err.h" //light weight ip packets error handling
-#include "lwip/sys.h" //system applications for light weight ip apps
-
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
-#include <stdlib.h>
-#include <inttypes.h>
-#include "esp_system.h"
-#include "nvs_flash.h"
-#include "esp_event.h"
-#include "esp_netif.h"
-
-#include "esp_log.h"
-#include "mqtt_client.h"
-
-
-
-
+/**
+ * @brief Main application entry point.
+ * 
+ * This function is called when the system starts and initializes 
+ * all required components (WiFi, MQTT, tasks, etc.).
+ */
 void app_main(void);
-
-
-
-
-
 
 #endif /* MAIN_SYSTEM_H */

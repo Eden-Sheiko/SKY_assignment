@@ -1,7 +1,7 @@
 {
     "version":            "1.1",
     "project_name":       "hello_world",
-    "project_version":    "b241845-dirty",
+    "project_version":    "6389fe4-dirty",
     "project_path":       "C:/Users/edens/OneDrive/Documents/PlatformIO/Projects/240901-221338-arduino-blink/hello_world",
     "idf_path":           "C:/Users/edens/esp/v5.3.1/esp-idf",
     "build_dir":          "C:/Users/edens/OneDrive/Documents/PlatformIO/Projects/240901-221338-arduino-blink/hello_world/build",
