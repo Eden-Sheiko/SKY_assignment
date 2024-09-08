@@ -5,6 +5,10 @@
 #include "../Inc/Wifi.h"
 #include "../Inc/MQTT.h"
 
+/*to add in the furture*/
+//#define DEBUG
+//#define NDEBUG
+
 static esp_adc_cal_characteristics_t adc1_chars;
 PIDController pid;
 double temp = 0;               
@@ -20,8 +24,10 @@ void init_adc(void);
 
 void app_main(void)
 {
+    /* include build in Error check + checksum */
     DHT11_init(PIN_NUMBER);
-
+    
+    /* inits Hardware + Software */
     init_nvs();
     init_wifi();
     init_mqtt();
@@ -29,6 +35,7 @@ void app_main(void)
     init_gpio();
     init_adc();
 
+    /* super loop */
     while (1) {
         ESP_LOGI(TAG2, "Temperature: %d", DHT11_read().temperature);
         ESP_LOGI(TAG2, "Status code: %d", DHT11_read().status);
@@ -59,7 +66,7 @@ void app_main(void)
         ESP_LOGI(TAG2, "ADC Value: %d", adc_value);
         vTaskDelay(500 / portTICK_PERIOD_MS);
 
-        char temp_str[10], hum_str[10], light_str[10];
+        char temp_str[BUFF_SIZE], hum_str[BUFF_SIZE], light_str[BUFF_SIZE];
         snprintf(temp_str, sizeof(temp_str), "%d", DHT11_read().temperature);
         snprintf(hum_str, sizeof(hum_str), "%d", DHT11_read().humidity);
         snprintf(light_str, sizeof(light_str), "%d", adc_value);  

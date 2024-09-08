@@ -8,6 +8,7 @@
  * client.
  * 
  * code was taken form esp32 offical github and ajusted 
+ * https://github.com/espressif/esp-idf/blob/master/examples/protocols/mqtt/tcp/main/app_main.c
  */
 
 #ifndef MQTT_H

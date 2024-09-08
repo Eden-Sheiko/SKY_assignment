@@ -8,6 +8,7 @@
  * retries.
  * 
  * code was taken form esp32 offical github and ajusted 
+ * https://github.com/espressif/esp-idf/blob/master/examples/wifi/getting_started/station/main/station_example_main.c
  */
 
 #ifndef WIFI_H
